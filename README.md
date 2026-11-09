@@ -1,6 +1,6 @@
 # Seedance Motion Control API examples
 
-Recast the performers in an existing video while keeping its motion, choreography, blocking, camera work, and location. This repository documents the two Seedance Motion Control endpoints available through the [Muapi API](https://muapi.ai).
+Recast the performers in an existing video while keeping its motion, choreography, blocking, camera work, and location. This repository documents the five Seedance Motion Control endpoints available through the [Muapi API](https://muapi.ai): Seedance 2 and 2.5, plus intl and spicy variants.
 
 ## Related Projects
 
@@ -13,10 +13,13 @@ Recast the performers in an existing video while keeping its motion, choreograph
 | --- | ---: | ---: | --- | ---: |
 | [`seedance-2-motion-control`](https://muapi.ai/playground/seedance-2-motion-control) | Up to 9 | 4–15 sec | `quality`: `high` or `basic`; `generate_audio` | From $0.21/sec + preprocessing |
 | [`seedance-2.5-motion-control`](https://muapi.ai/playground/seedance-2.5-motion-control) | Up to 30 | 4–30 sec | `seed`, `high_bitrate`, `generate_audio` | From $0.34/sec + preprocessing |
+| [`seedance-2.5-intl-motion-control`](https://muapi.ai/playground/seedance-2.5-intl-motion-control) | Up to 30 | 4–30 sec | Same as 2.5 | From $0.37/sec + preprocessing |
+| [`seedance-2.5-spicy-motion-control`](https://muapi.ai/playground/seedance-2.5-spicy-motion-control) | Up to 30 | 4–30 sec | Same as 2.5 | From $0.37/sec + preprocessing |
+| [`seedance-2-spicy-motion-control`](https://muapi.ai/playground/seedance-2-spicy-motion-control) | Up to 9 | 4–15 sec | Same as Seedance 2 | From $0.23/sec + preprocessing |
 
-Both variants require `video_url`. `images_list` contains the new performer reference images in the order they should appear. `prompt` is optional; when omitted, performer roles are inferred from the source and references. The output aspect ratio can be set independently of the source framing. Preprocessing adds a cost that scales with the source video length, so check the [live Muapi page](https://muapi.ai/seedance-motion-control) for current pricing before a large batch.
+All variants require `video_url`. `images_list` contains the new performer reference images in the order they should appear. `prompt` is optional; when omitted, performer roles are inferred from the source and references. The output aspect ratio can be set independently of the source framing. Preprocessing adds a cost that scales with the source video length, so check the [live Muapi page](https://muapi.ai/seedance-motion-control) for current pricing before a large batch.
 
-Seedance 2.5 supports `adaptive`, `16:9`, `9:16`, `1:1`, `4:3`, `3:4`, `21:9`, and `9:21`. Seedance 2 supports `21:9`, `16:9`, `4:3`, `1:1`, `3:4`, and `9:16`. Both default to `16:9`, a five-second output, and audio generation off. Seedance 2 defaults to `quality: high`; Seedance 2.5 defaults to standard bitrate. The 2.5 seed accepts `-1` for random or an integer through `4294967295` for reproducible generation.
+The Seedance 2.5 endpoints (standard, intl, spicy) support `adaptive`, `16:9`, `9:16`, `1:1`, `4:3`, `3:4`, `21:9`, and `9:21`. The Seedance 2 endpoints (standard, spicy) support `21:9`, `16:9`, `4:3`, `1:1`, `3:4`, and `9:16`. All variants default to `16:9`, a five-second output, and audio generation off. Seedance 2 defaults to `quality: high`; Seedance 2.5 defaults to standard bitrate. The 2.5 seed accepts `-1` for random or an integer through `4294967295` for reproducible generation.
 
 ## Quick start
 
@@ -51,16 +54,22 @@ Submit JSON to `POST https://api.muapi.ai/api/v1/{endpoint}` with `x-api-key` an
 | Field | Type | Required | Notes |
 | --- | --- | --- | --- |
 | `video_url` | string | Yes | Publicly reachable source performance video. |
-| `images_list` | string[] | No | Character reference image URLs; maximum 9 for Seedance 2 and 30 for 2.5. |
+| `images_list` | string[] | No | Character reference image URLs; maximum 9 for Seedance 2 (standard, spicy) and 30 for 2.5 (standard, intl, spicy). |
 | `prompt` | string | No | Short recast instruction. Roles are inferred if omitted. |
 | `aspect_ratio` | string | No | Output framing; supported values differ slightly by version (see above). |
 | `duration` | integer | No | Seconds: 4–15 for Seedance 2; 4–30 for 2.5. Default: 5. |
-| `quality` | string | Seedance 2 only | `high` (default) or `basic`. |
-| `high_bitrate` | boolean | Seedance 2.5 only | Defaults to `false`; larger output files when enabled. |
-| `seed` | integer | Seedance 2.5 optional | `-1` for random, or `0`–`4294967295` for reproducibility. |
+| `quality` | string | Seedance 2 / 2 spicy only | `high` (default) or `basic`. |
+| `high_bitrate` | boolean | Seedance 2.5 endpoints only | Defaults to `false`; larger output files when enabled. |
+| `seed` | integer | Seedance 2.5 endpoints, optional | `-1` for random, or `0`–`4294967295` for reproducibility. |
 | `generate_audio` | boolean | No | Defaults to `false`. |
 
 Example submit response: `{"request_id":"REQUEST_ID"}`. Poll `GET https://api.muapi.ai/api/v1/predictions/{request_id}/result`; the completed output contains a `video` URL. A task can also report `failed`; handle that state in your integration rather than polling forever.
+
+## Variants
+
+- **Intl** (`seedance-2.5-intl-motion-control`) routes through the international-region Seedance 2.5 model family. Inputs and output match standard 2.5.
+- **Spicy** (`seedance-2.5-spicy-motion-control`, `seedance-2-spicy-motion-control`) routes through a relaxed-moderation model family, intended for bolder creative recasts. Inputs and output match the standard endpoint of the same generation.
+- Intl and spicy endpoints are priced 10% above the matching standard endpoint. There is no Seedance 2 intl endpoint.
 
 ## Choosing a version
 
@@ -68,7 +77,7 @@ Choose Seedance 2 when a 15-second maximum and up to 9 character references are 
 
 ## Examples
 
-- [cURL: submit either version and poll](examples/curl/)
+- [cURL: one script per endpoint, plus polling](examples/curl/)
 - [Python: requests-based submit and poll helper](examples/python/)
 - [JavaScript: built-in fetch submit and poll helper](examples/javascript/)
 
@@ -77,6 +86,9 @@ Choose Seedance 2 when a 15-second maximum and up to 9 character references are 
 - [Seedance Motion Control overview and version comparison](https://muapi.ai/seedance-motion-control)
 - [Seedance 2 Motion Control playground/API](https://muapi.ai/playground/seedance-2-motion-control)
 - [Seedance 2.5 Motion Control playground/API](https://muapi.ai/playground/seedance-2.5-motion-control)
+- [Seedance 2.5 Intl Motion Control playground/API](https://muapi.ai/playground/seedance-2.5-intl-motion-control)
+- [Seedance 2.5 Spicy Motion Control playground/API](https://muapi.ai/playground/seedance-2.5-spicy-motion-control)
+- [Seedance 2 Spicy Motion Control playground/API](https://muapi.ai/playground/seedance-2-spicy-motion-control)
 - [Muapi API keys](https://muapi.ai/access-keys)
 
 *Prices are Muapi's listed starting rates at the time this README was written. Preprocessing is additional and varies with reference-video length; current rates are on the linked Muapi pages.

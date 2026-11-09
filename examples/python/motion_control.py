@@ -8,6 +8,9 @@ import requests
 
 API_BASE = "https://api.muapi.ai/api/v1"
 
+# version -> endpoint: seedance-{version}-motion-control
+VERSIONS = {"2", "2.5", "2.5-intl", "2.5-spicy", "2-spicy"}
+
 
 def generate(
     *,
@@ -21,8 +24,8 @@ def generate(
 ) -> dict[str, Any]:
     """Submit a recast and wait for its result. Requires MUAPI_API_KEY."""
     api_key = os.environ["MUAPI_API_KEY"]
-    if version not in {"2", "2.5"}:
-        raise ValueError("version must be '2' or '2.5'")
+    if version not in VERSIONS:
+        raise ValueError(f"version must be one of {sorted(VERSIONS)}")
 
     endpoint = f"seedance-{version}-motion-control"
     payload: dict[str, Any] = {
@@ -34,7 +37,7 @@ def generate(
     }
     if prompt:
         payload["prompt"] = prompt
-    if version == "2":
+    if version.split("-")[0] == "2":  # "2" and "2-spicy" use the Seedance 2 request shape
         payload["quality"] = "high"
     else:
         payload["high_bitrate"] = True

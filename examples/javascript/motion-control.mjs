@@ -2,6 +2,9 @@
 
 const API_BASE = "https://api.muapi.ai/api/v1";
 
+// version -> endpoint: seedance-{version}-motion-control
+const VERSIONS = ["2", "2.5", "2.5-intl", "2.5-spicy", "2-spicy"];
+
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export async function generate({
@@ -15,7 +18,7 @@ export async function generate({
 }) {
   const apiKey = process.env.MUAPI_API_KEY;
   if (!apiKey) throw new Error("Set MUAPI_API_KEY first");
-  if (!["2", "2.5"].includes(version)) throw new Error("version must be '2' or '2.5'");
+  if (!VERSIONS.includes(version)) throw new Error(`version must be one of ${VERSIONS.join(", ")}`);
 
   const endpoint = `seedance-${version}-motion-control`;
   const payload = {
@@ -25,7 +28,7 @@ export async function generate({
     aspect_ratio: aspectRatio,
     generate_audio: false,
     ...(prompt ? { prompt } : {}),
-    ...(version === "2"
+    ...(version.split("-")[0] === "2" // "2" and "2-spicy" use the Seedance 2 request shape
       ? { quality: "high" }
       : { high_bitrate: true, seed: 42 }),
   };
